@@ -68,7 +68,7 @@ Ember.RESTAdapter = Ember.Adapter.extend({
     var rootKey = get(record.constructor, 'rootKey'),
         primaryKey = get(record.constructor, 'primaryKey'),
         dataToLoad = rootKey ? get(data, rootKey) : data;
-        
+
     record.load(dataToLoad[primaryKey], dataToLoad);
     record.didCreateRecord();
   },
@@ -85,6 +85,29 @@ Ember.RESTAdapter = Ember.Adapter.extend({
   },
 
   didSaveRecord: function(record, data) {
+    var rootKey = get(record.constructor, 'rootKey'),
+        primaryKey = get(record.constructor, 'primaryKey'),
+        dataToLoad = rootKey ? data[rootKey] : data;
+
+    if (dataToLoad) {
+      record.load(dataToLoad[primaryKey], dataToLoad);
+    }
+  /**
+    A probléma a `record.load(...)`-dal `didSaveRecord`-ból:
+
+      1. Tegyük fel, hogy a `name` attribútum szerepel a _dirtyAttributes-ban
+      2. ajax kérés
+      3. válasz JSON-t berakjuk a `_data`-ba
+      4. a rekord minden attribútuma elveszíti a cache-elt értéket
+      5. meghívjuk a `record.didSaveRecord`-ot
+      6. a _copyDirtyAttributesToData megpróbálja a dirty attribútumokat visszaírni a _data-ba közvetlenül
+        a. lekéri az attribútum érékét cacheFor-ral, de a cache üres (undefined)
+        b. a `name` értéke a `_data`-ban `undefined` lesz
+      7. a `name` mező értéke eltűnt.
+
+    Ezért kiürítjük a _dirtyAttributes-t.
+  */
+    record.set('_dirtyAttributes', []);
     record.didSaveRecord();
   },
 

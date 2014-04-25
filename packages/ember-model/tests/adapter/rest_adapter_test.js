@@ -411,7 +411,7 @@ test("findQuery calls didFindQuery callback after finishing", function() {
 test("findQuery with params", function() {
   expect(1);
 
-  adapter._ajax = function(url, params, method) { 
+  adapter._ajax = function(url, params, method) {
     deepEqual(params, {foo: 'bar', num: 42});
     return ajaxSuccess({posts: []});
   };
@@ -420,7 +420,7 @@ test("findQuery with params", function() {
 });
 
 test("createRecord", function() {
-  expect(5);
+  expect(6);
 
   var record = RESTModel.create({name: "Erik"});
   // ok(record.get('isDirty'), "Record should be dirty");
@@ -435,6 +435,7 @@ test("createRecord", function() {
 
   Ember.run(record, record.save);
 
+  equal(record.get('name'), "Erik", "Record's name should be the returned value.");
   ok(!record.get('isNew'), "Record should not be new");
 });
 
@@ -467,7 +468,7 @@ test("createRecord calls didCreateRecord", function() {
 });
 
 test("saveRecord", function() {
-  expect(5);
+  expect(6);
 
   var record = Ember.run(RESTModel, RESTModel.create, {id: 1, name: "Erik", isNew: false});
 
@@ -478,12 +479,13 @@ test("saveRecord", function() {
     equal(url, "/posts/1");
     deepEqual(params, record.toJSON());
     equal(method, "PUT");
-    return ajaxSuccess({id: 1, name: "Erik"});
+    return ajaxSuccess({post: {id: 1, name: "Erik"}});
   };
 
   Ember.run(record, record.save);
 
   ok(!record.get('isDirty'), "Record should not be dirty");
+  equal(record.get('name'), "Erik", "Record should be updated with data came from the server.");
 });
 
 test("saveRecord calls didSaveRecord after saving record", function() {
@@ -684,7 +686,7 @@ test("find() resolves with record", function() {
 
   var data = {id: 1, name: 'Erik'},
       record = RESTModel.create();
-  
+
   RESTModel.collectionKey = undefined;
   adapter._ajax = function(url, params, method) {
     return ajaxSuccess(data);
@@ -705,7 +707,7 @@ test("findAll() resolves with records", function() {
         {id: 2, name: 'Aaron'}
       ],
       records = Ember.RecordArray.create();
-  
+
   RESTModel.collectionKey = undefined;
   adapter._ajax = function(url, params, method) {
     return ajaxSuccess(data);
@@ -726,7 +728,7 @@ test("findQuery() resolves with records", function() {
         {id: 2, name: 'Aaron'}
       ],
       records = Ember.RecordArray.create();
-  
+
   RESTModel.collectionKey = undefined;
   adapter._ajax = function(url, params, method) {
     return ajaxSuccess(data);
@@ -744,7 +746,7 @@ test("createRecord() resolves with record", function() {
 
   var data = {id: 1, name: 'Erik'},
       record = RESTModel.create();
-  
+
   RESTModel.rootKey = undefined;
   adapter._ajax = function(url, params, method) {
     return ajaxSuccess(data);
@@ -761,7 +763,7 @@ test("saveRecord() resolves with record", function() {
 
   var data = {id: 1, name: 'Erik'},
       record = RESTModel.create({name: 'Ray'});
-  
+
   RESTModel.rootKey = undefined;
   adapter._ajax = function(url, params, method) {
     return ajaxSuccess(data);
