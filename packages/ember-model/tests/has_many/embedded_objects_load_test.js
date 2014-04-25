@@ -36,7 +36,7 @@ test("derp", function() {
 });
 
 test("loading embedded data into a parent updates the child records", function() {
-  expect(2);
+  expect(3);
 
   var json = {
     id: 1,
@@ -74,6 +74,7 @@ test("loading embedded data into a parent updates the child records", function()
   post.load(1, json);
 
   equal(comment.get('body'), 'new');
+  equal(post.get('comments.length'), 1, 'Parent has the same amount of childs, after load.');
 });
 
 test("loading embedded data into a parent with deleted children deletes the children", function() {
@@ -113,5 +114,44 @@ test("loading embedded data into a parent with deleted children deletes the chil
   post.load(1, json);
 
   equal(post.get('comments.length'), 1);
+  equal(post.get('comments.firstObject.body'), 'new');
+});
+
+test("loading embedded data into a parent overwrites existing child records", function() {
+  expect(4);
+
+  var json = {
+    id: 1,
+    comments: [
+      {id: 1, body: 'new'}
+    ]
+  };
+
+  var Comment = Ember.Model.extend({
+    id: attr(),
+    body: attr()
+  });
+
+  var Post = Ember.Model.extend({
+    id: attr(),
+    comments: Ember.hasMany(Comment, {key: 'comments', embedded: true})
+  });
+
+  Post.adapter = {
+    find: function(record, id) {
+      record.load(id, {comments: [{id: 1, body: 'old'}]});
+    }
+  };
+
+  // var comment = Comment.find(1);
+  // eqal(comment.get('body'), 'old');
+
+  var post = Post.find(1);
+
+  equal(post.get('comments.length'), 1, 'Parent has one child record.');
+  equal(post.get('comments.firstObject.body'), 'old');
+  post.load(1, json);
+
+  equal(post.get('comments.length'), 1, 'Parent has still one child record.');
   equal(post.get('comments.firstObject.body'), 'new');
 });

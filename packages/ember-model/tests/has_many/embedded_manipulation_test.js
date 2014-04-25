@@ -76,3 +76,27 @@ test("removing a record from the many array", function() {
   equal(comments.objectAt(0).get('text'), "uno", "The first element is correct");
   equal(comments.objectAt(1).get('text'), "tres", "The second element is correct");
 });
+
+module("Embeded belongsTo");
+
+test("changing the child makes the parent dirty as well", function() {
+  var LicensePlate = Ember.Model.extend({
+    identifier: attr()
+  });
+
+  var Car = Ember.Model.extend({
+    name: attr(),
+
+    licensePlate: Ember.belongsTo(LicensePlate, { key: 'licensePlate', embedded: true })
+  });
+
+  var car = Car.create();
+  Ember.run(car, car.load, 1, {name: 'kitt', licensePlate: {identifier: '123'}});
+
+  equal(car.get('licensePlate.identifier'), '123');
+  ok(!car.get('isDirty'));
+  ok(!car.get('licensePlate.isDirty'));
+  car.set('licensePlate.identifier', 'abc');
+  ok(car.get('isDirty'));
+  ok(car.get('licensePlate.isDirty'));
+});

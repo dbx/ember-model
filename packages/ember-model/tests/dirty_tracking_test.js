@@ -327,6 +327,66 @@ test("manipulating the order of objects in a hasMany shouldn't dirty the parent"
   deepEqual(post.get('_dirtyAttributes'), []);
 });
 
+test("A parent record should be dirty after its embedded child bacame dirty.", function() {
+  expect(2);
+  var Comment = Ember.Model.extend({
+    id: Ember.attr(),
+    text: Ember.attr()
+  });
+  Comment.adapter = Ember.FixtureAdapter.create();
+
+  var Post = Ember.Model.extend({
+    id: attr(),
+    comments: Ember.hasMany(Comment, {key: 'comments', embedded: true})
+  });
+
+  Comment.reopenClass({
+    post: Ember.belongsTo(Post, {key: 'post'})
+  });
+
+  Post.adapter = {
+    find: function(record, id) {
+      record.load(id, {comments: [{id: id, text: 'old', post: id}]});
+    }
+  };
+
+  var post = Post.find(1);
+
+  ok(!post.get('isDirty'));
+  post.set('comments.firstObject.text', 'new');
+  ok(post.get('isDirty'), "After changing a child, the parent shuld be dirty.");
+});
+
+test("Parent record should be dirty after one of its embedded child is removed.", function(){
+  expect(2);
+  var Comment = Ember.Model.extend({
+    id: Ember.attr(),
+    text: Ember.attr()
+  });
+
+  var Post = Ember.Model.extend({
+    id: attr(),
+    comments: Ember.hasMany(Comment, {key: 'comments', embedded: true})
+  });
+
+  Post.adapter = {
+    find: function(record, id) {
+      record.load(id, {
+        comments: [
+          {id: 1, text: 'comment 1', post: id},
+          {id: 2, text: 'comment 2', post: id},
+          {id: 3, text: 'comment 3', post: id}
+        ]});
+    }
+  };
+
+  var post = Post.find(1);
+  var comment = post.get('comments.firstObject');
+  post.get('comments').removeObject(comment);
+  equal(post.get('comments.length'), 2);
+  ok(post.get('isDirty'));
+});
+
 test("modifying hasMany record should make parent dirty", function() {
   var Author = Ember.Model.extend({
         id: Ember.attr(),
