@@ -1,7 +1,7 @@
 module.exports = {
   test: {
     options: {
-      port: 8000,
+      port: 8001,
       base: '.'
     }
   }
