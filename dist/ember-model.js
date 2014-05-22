@@ -1788,15 +1788,12 @@ Ember.RESTAdapter = Ember.Adapter.extend({
         }
 
         // validációs hiba catch
-
         if (jqXHR.status === 400) {
           Ember.run(null, resolve, JSON.parse(jqXHR.responseText));
         } else {
           Ember.run(null, reject, jqXHR);
         }
-
       };
-
 
       Ember.$.ajax(settings);
    });
