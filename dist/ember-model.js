@@ -852,8 +852,9 @@ Ember.Model = Ember.Object.extend(Ember.Evented, {
     var i, j;
     for (i = 0; i < this._hasManyArrays.length; i++) {
       var array = this._hasManyArrays[i],
-          hasManyContent = this._getHasManyContent(get(array, 'key'), get(array, 'modelClass'), get(array, 'embedded'));
-      if (!reverting) {
+          embedded = get(array, 'embedded'),
+          hasManyContent = this._getHasManyContent(get(array, 'key'), get(array, 'modelClass'), embedded);
+      if (!reverting && !embedded) {
         for (j = 0; j < array.get('length'); j++) {
           if (array.objectAt(j).get('isNew') && !array.objectAt(j).get('isDeleted')) {
             hasManyContent.addObject(array.objectAt(j)._reference);
