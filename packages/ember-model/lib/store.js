@@ -2,7 +2,7 @@ Ember.Model.Store = Ember.Object.extend({
   container: null,
 
   modelFor: function(type) {
-    return this.container.lookupFactory('model:'+type);
+    return Ember.get(Ember.lookup, type) || this.container.lookupFactory('model:'+type);
   },
 
   adapterFor: function(type) {
